@@ -2,19 +2,29 @@ import { TweenLite } from 'gsap';
 import { tns } from '../vendors/tiny-slider/tiny-slider';
 
 export default class SliderCarousel {
-    constructor(container, autoPlay, controls, progress) {
+    constructor(option = {}) {
 
-        this.container = container;
-        this.autoPlay = autoPlay;
-        this.controls = controls;
-        this.progress = progress;
+        this.container = option.container || null;
+
+        this.use_autoPlay = option.autoPlay || false;
+        this.use_controls = option.controls || false;
+        this.use_progress = option.progress || false;
+
+        this.config_id = option.id || '#slider-carousel';
+        this.config_width = option.width || 200;
+        this.config_gutter = option.gutter || 20;
+
+        this.time_wait = option.wait || 5000;
+        this.time_duration = option.duration || 1000;
+
+        this.autoplay_switch = 0;
 
         this.isPlaying = null;
-        this.isAnimation = true;
+        this.is_anim = true;
         this.isClicked = true;
         this.isTouch = true;
 
-        this.route = document.querySelector(this.container) || 0;
+        this.route = document.querySelector(this.container) || false;
 
         this.controls_container = null;
         this.controls_prev = null;
@@ -30,14 +40,6 @@ export default class SliderCarousel {
         this.slide_total = null;
         this.slide_current = null;
 
-        this.time_wait = 4000;
-        this.time_duration = 1200;
-        this.time_switch = 0;
-
-        this.config_id = '#slider-carousel';
-        this.config_gutter = 25;
-        this.config_fixedWidth = 210;
-        
     }
 
     run() {
@@ -48,7 +50,7 @@ export default class SliderCarousel {
             'container': this.config_id,
             'speed': this.time_duration,
             'gutter': this.config_gutter,
-            'fixedWidth': this.config_fixedWidth,
+            'fixedWidth': this.config_width,
             'touch': true,
             'nav': false,
             'swipeAngle': false,
@@ -64,15 +66,15 @@ export default class SliderCarousel {
         this.slide_info = this.slide_config.getInfo();
         this.slide_total = this.slide_info.slideCount;
 
-        if(this.controls) {
+        if(this.use_controls) {
             
-            this.controls_container = this.route.querySelector('.p-slider-carousel__controls');
-            this.controls_prev = this.controls_container.querySelector('.p-slider-carousel__controls--prev');
-            this.controls_next = this.controls_container.querySelector('.p-slider-carousel__controls--next');
+            this.controls_container = this.route.querySelector(this.container + '__controls');
+            this.controls_prev = this.controls_container.querySelector(this.container + '__controls--prev');
+            this.controls_next = this.controls_container.querySelector(this.container + '__controls--next');
 
         }
 
-        if(this.progress) {
+        if(this.use_progress) {
             
             this.progress_container = this.route.querySelector('');
             this.progress_bar = this.progress_container.querySelector('');
@@ -114,8 +116,8 @@ export default class SliderCarousel {
 
     _reset() {
 
-        this.isAnimation = false;
-        this.time_switch = 0;
+        this.is_anim = false;
+        this.autoplay_switch = 0;
 
         if(this.progress) {
 
@@ -133,7 +135,7 @@ export default class SliderCarousel {
                                 left: 0,
                             });
 
-                            this.isAnimation = true;
+                            this.is_anim = true;
                             this.isClicked = true;
                             this._autoPlay();
 
@@ -147,7 +149,7 @@ export default class SliderCarousel {
 
             setTimeout(() => {
                 
-                this.isAnimation = true;
+                this.is_anim = true;
                 this.isClicked = true;
                 this._autoPlay();
 
@@ -175,11 +177,11 @@ export default class SliderCarousel {
         }
 
         if($('.is-append').length){
-            let target = this.progress_current.querySelector('.is-append') || 0;
+            let target = this.progress_current.querySelector('.is-append') || false;
             if(target) target.parentNode.removeChild(target);
         }
 
-        let active = this.progress_current.querySelector('.is-active') || 0;
+        let active = this.progress_current.querySelector('.is-active') || false;
 
         let append = document.createElement('div');
             append.classList.add('is-append');
@@ -231,17 +233,17 @@ export default class SliderCarousel {
 
     _autoPlay() {
 
-        if(!this.autoPlay) return;
-        if(!this.isAnimation) return;
+        if(!this.use_autoPlay) return;
+        if(!this.is_anim) return;
 
         let time = this.time_wait * .06;
-        this.time_switch += 1;
+        this.autoplay_switch += 1;
 
         if(this.progress) {
-            this.progressBar.style.width = this.time_switch / time * 100 + '%';
+            this.progressBar.style.width = this.autoplay_switch / time * 100 + '%';
         }
 
-        if(this.time_switch >= time) {
+        if(this.autoplay_switch >= time) {
             this._slideGoTo('next');
             this._progress('next');
         }
@@ -255,13 +257,13 @@ export default class SliderCarousel {
 
         this.slide_config.events.on('touchStart', () => {
 
-            this.isAnimation = false;
+            this.is_anim = false;
 
         });
 
         this.slide_config.events.on('touchEnd', () => {
 
-            this.isAnimation = true;
+            this.is_anim = true;
 
             this._slideGoTo('next');
             this._progress('next');

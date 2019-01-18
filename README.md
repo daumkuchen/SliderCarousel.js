@@ -1,2 +1,6 @@
 # SliderCarousel.js
-utility module. using tiny-slider.
+utility module using tiny-slider.
+
+## library
+* tiny-slider
+* gsap(TweenLite)
