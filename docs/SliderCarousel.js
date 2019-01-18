@@ -6,17 +6,17 @@ export default class SliderCarousel {
 
         this.container = option.container || null;
 
-        this.use_autoPlay = option.autoPlay || false;
-        this.use_controls = option.controls || false;
-        this.use_progress = option.progress || false;
-
-        this.config_id = option.id || '#slider-carousel';
+        this.config_list = option.list || null;
         this.config_width = option.width || 200;
         this.config_gutter = option.gutter || 20;
 
         this.time_wait = option.wait || 5000;
         this.time_duration = option.duration || 1000;
 
+        this.use_autoPlay = option.autoPlay || false;
+        this.use_controls = option.controls || false;
+        this.use_progress = option.progress || false;
+        
         this.autoplay_switch = 0;
 
         this.isPlaying = null;
@@ -35,7 +35,9 @@ export default class SliderCarousel {
         this.progress_current = null;
         this.progress_total = null;
 
-        this.slide_config = null;
+        // this.slide_config = null;
+        this.slide_config = [];
+
         this.slide_info = null;
         this.slide_total = null;
         this.slide_current = null;
@@ -46,25 +48,39 @@ export default class SliderCarousel {
 
         if(!this.route) return;
 
-        this.slide_config = tns({
-            'container': this.config_id,
-            'speed': this.time_duration,
-            'gutter': this.config_gutter,
-            'fixedWidth': this.config_width,
-            'touch': true,
-            'nav': false,
-            'swipeAngle': false,
-            'autoplay': false,
-            'controls': false,
-            'mouseDrag': false,
-            // 'responsive': {
-            //     769: {
-            //     },
-            // }
+        let slider_lists = Array.prototype.slice.call(document.querySelectorAll(this.config_list));
+        slider_lists.forEach((elm) => {
+            this.slide_config.push(
+                tns({
+                    'container': elm,
+                    'speed': this.time_duration,
+                    'gutter': this.config_gutter,
+                    'fixedWidth': this.config_width,
+                    'touch': true,
+                    'nav': false,
+                    'swipeAngle': false,
+                    'autoplay': false,
+                    'controls': false,
+                    'mouseDrag': false,
+                    // 'responsive': {
+                    //     769: {
+                    //     },
+                    // }
+                })
+            );
         });
 
-        this.slide_info = this.slide_config.getInfo();
+        this.slide_info = this.slide_config[0].getInfo();
         this.slide_total = this.slide_info.slideCount;
+
+        // this.slide_config.forEach((elm, i) => {
+        //     this.slide_info.push(
+        //         this.slide_config[i].getInfo()
+        //     );
+        //     this.slide_total.push(
+        //         this.slide_info[i].slideCount
+        //     );
+        // });
 
         if(this.use_controls) {
             
@@ -95,9 +111,14 @@ export default class SliderCarousel {
 
     }
 
+    destroy() {}
+
     _slideGoTo(direction) {
 
-        this.slide_config.goTo(direction);
+        // this.slide_config[i].goTo(direction);
+        this.slide_config.forEach((elm) => {
+            elm.goTo(direction);
+        });
 
         this._setActive();
 
@@ -107,7 +128,11 @@ export default class SliderCarousel {
 
         this.isClicked = false;
 
-        this.slide_info = this.slide_config.getInfo();
+        // this.slide_info = this.slide_config[0].getInfo();
+        this.slide_config.forEach((elm) => {
+            elm.getInfo();
+        });
+
         this.slide_current = this.slide_info.index;
 
         this._reset();
@@ -215,7 +240,7 @@ export default class SliderCarousel {
     }
 
     _controls() {
-
+        
         this.controls_container.addEventListener('click',(e) => {
             e.preventDefault();
 
@@ -255,26 +280,49 @@ export default class SliderCarousel {
 
     _touch() {
 
-        this.slide_config.events.on('touchStart', () => {
+        // this.slide_config[0].events.on('touchStart', () => {
+        //     this.is_anim = false;
+        // });
 
-            this.is_anim = false;
+        // this.slide_config[0].events.on('touchEnd', () => {
 
-        });
+        //     this.is_anim = true;
 
-        this.slide_config.events.on('touchEnd', () => {
+        //     this._slideGoTo('next');
+        //     this._progress('next');
 
-            this.is_anim = true;
+        //     this.route.style.pointerEvents = 'none';
 
-            this._slideGoTo('next');
-            this._progress('next');
+        //     setTimeout(() => { 
 
-            this.route.style.pointerEvents = 'none';
+        //         this.route.style.pointerEvents = 'auto';
 
-            setTimeout(() => { 
+        //     }, this.time_duration);
 
-                this.route.style.pointerEvents = 'auto';
+        // });
 
-            }, this.time_duration);
+        this.slide_config.forEach((elm) => {
+
+            elm.events.on('touchStart', () => {
+                this.is_anim = false;
+            });
+
+            elm.events.on('touchEnd', () => {
+
+                this.is_anim = true;
+    
+                this._slideGoTo('next');
+                this._progress('next');
+    
+                this.route.style.pointerEvents = 'none';
+    
+                setTimeout(() => { 
+    
+                    this.route.style.pointerEvents = 'auto';
+    
+                }, this.time_duration);
+    
+            });
 
         });
 
